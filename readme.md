@@ -2,7 +2,10 @@
 
 Email Cleaner is a Python script that verifies and cleans a list of emails provided in a CSV file.
 
-## Requirements
+## Install
+
+Clone the repository : 
+```git clone https://github.com/degun-osint/emailcleaner.git```
 
 To run the script, you need to have Python 3.x installed on your system, as well as the libraries specified in the `requirements.txt` file.
 

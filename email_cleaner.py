@@ -91,8 +91,9 @@ def main():
 
     # Generate and print the summary
     asciiCleaned = pyfiglet.figlet_format("Cleaned!")
-    print(colored(f'{asciiCleaned}', 'white'))
-    print(f'Total email verified: {total_emails}')
+    print(colored(f'{asciiCleaned}', 'cyan'))
+    print(colored(f'by Degun - https://github.com/degun-osint\n\n', 'cyan'))
+    print(f'➡️  Total email verified: {total_emails}\n')
     print(colored(f'✅ Total valid emails: {valid_emails}. \n   File as been saved to {output_csv_cleaned}\n', 'green'))
     print(
         colored(f'❌ Total invalid emails: {invalid_emails}. \n   File as been saved to {output_csv_invalid}\n', 'red'))
