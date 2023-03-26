@@ -3,11 +3,19 @@ import csv
 import re
 import os
 import pyfiglet
+import chardet
+import codecs
 from termcolor import colored
 
 
 # Function to check if an email is valid
 def is_valid_email(email):
+    """
+    Check if an email address is valid.
+    """
+    if not email:
+        return False
+
     # Define the regular expression for a valid email
     regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
@@ -18,8 +26,6 @@ def is_valid_email(email):
     # Match the email against the regex
     return re.match(regex, email) is not None
 
-
-# Main function
 def main():
     # Set up command-line argument parsing
     parser = argparse.ArgumentParser(description='Verify and clean a list of emails in a CSV file.')
@@ -30,6 +36,9 @@ def main():
     input_csv = args.input_csv
     output_csv_cleaned = os.path.splitext(input_csv)[0].rstrip('.csv') + '-cleaned.csv'
     output_csv_invalid = os.path.splitext(input_csv)[0].rstrip('.csv') + '-invalid.csv'
+    with open(input_csv, 'rb') as f:
+        result = chardet.detect(f.read())
+        encoding = result['encoding']
 
     # Initialize counters and lists
     total_emails = 0
@@ -38,29 +47,30 @@ def main():
     invalid_email_list = []
 
     # Process the input and output files
-    with open(input_csv, 'r') as input_file:
+    with open(input_csv, 'rb') as input_file:
+        encoding = chardet.detect(input_file.read())['encoding']
+        input_file.seek(0)
+        input_data = input_file.read().decode(encoding, errors='ignore')
+        dialect = csv.Sniffer().sniff(input_data[:1024])
+        input_file.seek(0)
+        reader = csv.reader(codecs.iterdecode(input_file, encoding), dialect)
+
         try:
-            dialect = csv.Sniffer().sniff(input_file.read(1024))
-            input_file.seek(0)
-            reader = csv.reader(input_file, dialect)
-            header = next(reader)
-        except csv.Error:
-            # If the delimiter cannot be detected, assume it's a semicolon
-            input_file.seek(0)
-            reader = csv.reader(input_file, delimiter=';')
-            header = None
-            dialect = None
+            header = next(reader, None)
+        except StopIteration:
+            raise ValueError("CSV file is empty")
 
         # Find the email column index
         email_index = None
         if header:
-            if "emails" in header:
-                email_index = header.index("emails")
-            elif "email" in header:
-                email_index = header.index("email")
+            for col in ['email', 'emails']:
+                if col in header:
+                    email_index = header.index(col)
+                    break
         else:
             # If there's no header, assume that the only column is the email column
-            email_index = 0
+            if len(next(reader)) == 1:
+                email_index = 0
 
         if email_index is None:
             raise ValueError("No 'email' or 'emails' column found in the CSV file.")
