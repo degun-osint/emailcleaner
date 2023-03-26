@@ -10,15 +10,15 @@ from termcolor import colored
 
 
 # Function to check if an email is valid
+
 def is_valid_email(email):
-    """
-    Check if an email address is valid.
-    """
+
+    # Check if an email address is valid.
     if not email:
         return False
 
     # Define the regular expression for a valid email
-    regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    regex = r"^[a-zA-Z0-9_\-]+(\.[a-zA-Z0-9_\-]+)*@[a-zA-Z0-9_\-]+(\.[a-zA-Z0-9_\-]+)*(\.[a-zA-Z]{2,6})$"
 
     # Check for the ".@" pattern in the email
     if ".@" in email:
@@ -26,6 +26,7 @@ def is_valid_email(email):
 
     # Match the email against the regex
     return re.match(regex, email) is not None
+
 
 def main():
     # Set up command-line argument parsing
@@ -102,8 +103,8 @@ def main():
 
     # Generate and print the summary
     time_elapsed = time.time() - start_time
-    asciiCleaned = pyfiglet.figlet_format("Cleaned!")
-    print(colored(f'{asciiCleaned}', 'cyan'))
+    ascii_cleaned = pyfiglet.figlet_format("Cleaned!")
+    print(colored(f'{ascii_cleaned}', 'cyan'))
     print(colored(f'by Degun - https://github.com/degun-osint\n\n', 'cyan'))
     print(f'➡️  Total email verified: {total_emails} in {time_elapsed:.2f} seconds.\n')
     print(colored(f'✅ Total valid emails: {valid_emails}. \n   File as been saved to {output_csv_cleaned}\n', 'green'))
@@ -112,6 +113,8 @@ def main():
     print(colored(f'Invalid email list:', 'white', 'on_red'))
     for invalid_email in invalid_email_list:
         print(invalid_email)
+
+
 # Run the main function
 if __name__ == '__main__':
     main()
