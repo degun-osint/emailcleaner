@@ -38,30 +38,56 @@ def main():
     invalid_email_list = []
 
     # Process the input and output files
-    with open(input_csv, 'r') as input_file, \
-            open(output_csv_cleaned, 'w', newline='') as output_cleaned_file, \
-            open(output_csv_invalid, 'w', newline='') as output_invalid_file:
+    with open(input_csv, 'r') as input_file:
+        try:
+            dialect = csv.Sniffer().sniff(input_file.read(1024))
+            input_file.seek(0)
+            reader = csv.reader(input_file, dialect)
+            header = next(reader)
+        except csv.Error:
+            # If the delimiter cannot be detected, assume it's a semicolon
+            input_file.seek(0)
+            reader = csv.reader(input_file, delimiter=';')
+            header = None
+            dialect = None
 
-        reader = csv.reader(input_file)
-        writer_cleaned = csv.writer(output_cleaned_file)
-        writer_invalid = csv.writer(output_invalid_file)
-        next(reader)  # Skip the first line (header)
+        # Find the email column index
+        email_index = None
+        if header:
+            if "emails" in header:
+                email_index = header.index("emails")
+            elif "email" in header:
+                email_index = header.index("email")
+        else:
+            # If there's no header, assume that the only column is the email column
+            email_index = 0
 
-        # Iterate through the input file rows
-        for row in reader:
-            if not row:  # Skip empty rows
-                continue
-            email = row[0].lower()
-            total_emails += 1
+        if email_index is None:
+            raise ValueError("No 'email' or 'emails' column found in the CSV file.")
 
-            # Check if the email is valid and write it to the corresponding output file
-            if is_valid_email(email):
-                valid_emails += 1
-                writer_cleaned.writerow([email])
-            else:
-                invalid_emails += 1
-                invalid_email_list.append(email)
-                writer_invalid.writerow([email])
+        with open(output_csv_cleaned, 'w', newline='') as output_cleaned_file, \
+                open(output_csv_invalid, 'w', newline='') as output_invalid_file:
+
+            writer_cleaned = csv.writer(output_cleaned_file, dialect, quoting=csv.QUOTE_NONNUMERIC, escapechar='\\')
+            writer_invalid = csv.writer(output_invalid_file, dialect, quoting=csv.QUOTE_NONNUMERIC, escapechar='\\')
+
+            if header:
+                writer_cleaned.writerow(header)
+                writer_invalid.writerow(header)
+
+            for row in reader:
+                if not row:  # Skip empty rows
+                    continue
+                email = row[email_index].lower()  # Convert email to lowercase
+                total_emails += 1
+
+                if is_valid_email(email):
+                    valid_emails += 1
+                    writer_cleaned.writerow(row)
+                else:
+                    invalid_emails += 1
+                    invalid_email_list.append(email)
+                    writer_invalid.writerow(row)
 
     # Generate and print the summary
     asciiCleaned = pyfiglet.figlet_format("Cleaned!")
@@ -73,8 +99,6 @@ def main():
     print(colored(f'Invalid email list:', 'white', 'on_red'))
     for invalid_email in invalid_email_list:
         print(invalid_email)
-
-
 # Run the main function
 if __name__ == '__main__':
     main()
