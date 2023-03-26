@@ -5,6 +5,7 @@ import os
 import pyfiglet
 import chardet
 import codecs
+import time
 from termcolor import colored
 
 
@@ -84,7 +85,7 @@ def main():
             if header:
                 writer_cleaned.writerow(header)
                 writer_invalid.writerow(header)
-
+            start_time = time.time()
             for row in reader:
                 if not row:  # Skip empty rows
                     continue
@@ -100,10 +101,11 @@ def main():
                     writer_invalid.writerow(row)
 
     # Generate and print the summary
+    time_elapsed = time.time() - start_time
     asciiCleaned = pyfiglet.figlet_format("Cleaned!")
     print(colored(f'{asciiCleaned}', 'cyan'))
     print(colored(f'by Degun - https://github.com/degun-osint\n\n', 'cyan'))
-    print(f'➡️  Total email verified: {total_emails}\n')
+    print(f'➡️  Total email verified: {total_emails} in {time_elapsed:.2f} seconds.\n')
     print(colored(f'✅ Total valid emails: {valid_emails}. \n   File as been saved to {output_csv_cleaned}\n', 'green'))
     print(
         colored(f'❌ Total invalid emails: {invalid_emails}. \n   File as been saved to {output_csv_invalid}\n', 'red'))
